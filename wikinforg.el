@@ -6,7 +6,7 @@
 ;; URL: https://github.com/progfolio/wikinforg
 ;; Created: September 14, 2020
 ;; Keywords: org, convenience
-;; Package-Requires: ((emacs "25.1") (wikinfo "0.0.0"))
+;; Package-Requires: ((emacs "27.1") (wikinfo "0.0.0"))
 ;; Version: 0.0.0
 
 ;; This file is not part of GNU Emacs.
