@@ -31,7 +31,17 @@
 (require 'org)
 
 ;;; Code:
+;;;; Customizations
+(defgroup wikinforg nil
+  "Org wikinfo integration"
+  :group 'wikinforg
+  :prefix "wikinforg-")
 
+(defcustom wikinforg-include-extract t
+  "Whether or not to include a summary in the resultant entry's body."
+  :type 'boolean)
+
+;;;; Functions
 (defun wikinforg--entry (info)
   "Return entry string from INFO plist.")
 
