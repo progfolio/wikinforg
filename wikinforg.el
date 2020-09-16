@@ -63,7 +63,7 @@ for now a single universal arg causes the entry to be messaged instead of insert
                                           (when suffix (format "(%s)" suffix))
                                           ": "))))
          (suffix (or suffix ""))
-         (info (wikinfo (format "%s %s" search suffix) predicate))
+         (info (wikinfo (string-trim (format "%s %s" search suffix)) predicate))
          (result (with-temp-buffer
                    (org-insert-heading)
                    (insert (or (wikinfo--plist-path info :wikinfo :title) search))
