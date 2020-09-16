@@ -49,25 +49,35 @@
   "Return formatted PROP string from INFOLIST."
   (string-join (plist-get infolist prop) (or separator ", ")))
 
-(defun wikinforg (&optional arg search suffix)
-  "Return Org entry from `wikinfo-infobox'.
-If SUFFIX is non-nil, it is appended to SEARCH.
-@TODO FINISH DOCSTRING.
-ARG = thing at point updated?"
+;;;; Commands
+;;;###autoload
+(defun wikinforg (&optional arg suffix search predicate)
+  "Return Org entry from `wikinfo'.
+If SUFFIX is non-nil it is added to SEARCH string.
+SEARCH and PREDICATE are passed to `wikinfo'.
+Don't know what I want to do with ARG yet.
+for now a single universal arg causes the entry to be messaged instead of inserted."
   (interactive "P")
   (let* ((search (or search
                      (read-string (concat "Wikinforg"
                                           (when suffix (format "(%s)" suffix))
                                           ": "))))
          (suffix (or suffix ""))
-         (info (wikinfo (format "%s %s" search suffix)))
+         (info (wikinfo (format "%s %s" search suffix) predicate))
          (result (with-temp-buffer
                    (org-insert-heading)
-                   (insert (wikinforg--get info :wikinfo-entity))
-                   (dolist (keyword (remq :wikinfo-entity
-                                          (seq-filter #'keywordp info)))
+                   (insert (or (plist-get info :wikinfo-entity) search))
+                   (dolist (keyword
+                            (seq-filter
+                             (lambda (el) (and (keywordp el)
+                                               (not (member el '(:wikinfo-entity
+                                                                 :wikinfo-extract)))))
+                             info))
                      (org-set-property (substring (symbol-name keyword) 1)
                                        (wikinforg--get info keyword)))
+                   (when wikinforg-include-extract
+                     (goto-char (point-max))
+                     (insert (plist-get info :wikinfo-extract)))
                    (buffer-string))))
     (if (or arg (not (called-interactively-p 'interactive)))
         (pcase arg
@@ -80,6 +90,7 @@ ARG = thing at point updated?"
                  (make-string (max (1- (org-outline-level)) 0) ?*)
                  result))))))
 
+;;;###autoload
 (defun wikinforg-capture (suffix)
   "Wikinforg wrapper for use in capture templates.
 Call `wikinforg' command with search SUFFIX.
@@ -91,6 +102,8 @@ If the command is aborted, an empty string is returned so the capture will not e
         (condition-case nil
             (wikinforg nil query suffix)
           (error (concat "* " query))))
+    ;;@TODO: Assumes org-capture entry type of "entry"
+    ;; should be more flexible or caller's responsibility
     (quit "*")))
 
 (provide 'wikinforg)
