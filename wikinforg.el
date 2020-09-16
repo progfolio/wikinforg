@@ -74,6 +74,10 @@ for now a single universal arg causes the entry to be messaged instead of insert
                              info))
                      (org-set-property (substring (symbol-name keyword) 1)
                                        (wikinforg--get info keyword)))
+                   (org-set-property
+                    "URL"
+                    (format "%s?curid=%d" wikinfo-base-url
+                            (wikinfo--plist-path info :wikinfo :id)))
                    (when wikinforg-include-extract
                      (goto-char (point-max))
                      (insert (wikinfo--plist-path info :wikinfo :extract)))
