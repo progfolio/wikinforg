@@ -66,18 +66,17 @@ for now a single universal arg causes the entry to be messaged instead of insert
          (info (wikinfo (format "%s %s" search suffix) predicate))
          (result (with-temp-buffer
                    (org-insert-heading)
-                   (insert (or (plist-get info :wikinfo-entity) search))
+                   (insert (or (wikinfo--plist-path info :wikinfo :title) search))
                    (dolist (keyword
                             (seq-filter
                              (lambda (el) (and (keywordp el)
-                                               (not (member el '(:wikinfo-entity
-                                                                 :wikinfo-extract)))))
+                                               (not (member el '(:wikinfo)))))
                              info))
                      (org-set-property (substring (symbol-name keyword) 1)
                                        (wikinforg--get info keyword)))
                    (when wikinforg-include-extract
                      (goto-char (point-max))
-                     (insert (plist-get info :wikinfo-extract)))
+                     (insert (wikinfo--plist-path info :wikinfo :extract)))
                    (buffer-string))))
     (if (or arg (not (called-interactively-p 'interactive)))
         (pcase arg
