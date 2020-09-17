@@ -41,32 +41,33 @@
   "Whether or not to include a summary in the resultant entry's body."
   :type 'boolean)
 
-;;;; Functions
-(defun wikinforg--entry (info)
-  "Return entry string from INFO plist.")
+(defcustom wikinforg-query-format "%s"
+  "Format string for queries."
+  :type 'string)
 
+;;;; Functions
 (defun wikinforg--get (infolist prop &optional separator)
   "Return formatted PROP string from INFOLIST."
   (string-join (plist-get infolist prop) (or separator ", ")))
 
+(defun wikinforg--format-query (query)
+  "Return formatted QUERY using `wikinforg-query-format' string."
+  (format wikinforg-query-format query))
+
 ;;;; Commands
 ;;;###autoload
-(defun wikinforg (&optional arg suffix search predicate)
+(defun wikinforg (&optional arg query predicate)
   "Return Org entry from `wikinfo'.
-If SUFFIX is non-nil it is added to SEARCH string.
-SEARCH and PREDICATE are passed to `wikinfo'.
+QUERY and PREDICATE are passed to `wikinfo'.
 Don't know what I want to do with ARG yet.
 for now a single universal arg causes the entry to be messaged instead of inserted."
   (interactive "P")
-  (let* ((search (or search
-                     (read-string (concat "Wikinforg"
-                                          (when suffix (format "(%s)" suffix))
-                                          ": "))))
-         (suffix (or suffix ""))
-         (info (wikinfo (string-trim (format "%s %s" search suffix)) predicate))
+  (let* ((query (string-trim
+                 (wikinforg--format-query (or query (read-string "Wikinforg: ")))))
+         (info (wikinfo query predicate))
          (result (with-temp-buffer
                    (org-insert-heading)
-                   (insert (or (wikinfo--plist-path info :wikinfo :title) search))
+                   (insert (or (wikinfo--plist-path info :wikinfo :title) query))
                    (dolist (keyword
                             (seq-filter
                              (lambda (el) (and (keywordp el)
