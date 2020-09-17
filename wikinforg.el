@@ -88,26 +88,31 @@ for now a single universal arg causes the entry to be messaged instead of insert
           ('(4) (message result))
           (_ result))
       (save-excursion
-        (org-paste-subtree nil result nil 'remove)))))
+        (if (derived-mode-p 'org-mode)
+            (org-paste-subtree nil result)
+          (insert (with-temp-buffer
+                    (org-mode)
+                    (org-paste-subtree nil result)
+                    (buffer-string))))))))
 
 ;;;###autoload
-;;@TODO: suffix should be optional
-(defun wikinforg-capture (suffix)
-  "Wikinforg wrapper for use in capture templates.
+        ;;@TODO: suffix should be optional
+        (defun wikinforg-capture (suffix)
+          "Wikinforg wrapper for use in capture templates.
 Call `wikinforg' command with search SUFFIX.
 If the wikinforg call fails, the user's query is returned.
 If the command is aborted, an empty string is returned so the capture will not error."
-  (condition-case nil
-      (let ((query (or (read-string (format "Wikinforg (%s): " suffix))
-                       "")))
-        (condition-case nil
-            (wikinforg nil query suffix)
-          (quit (concat "* " query))))
-    ;;@TODO: Assumes org-capture entry type of "entry"
-    ;; should be more flexible or caller's responsibility.
-    ;; Possibly just query org-current-plist for :type
-    (quit "*")))
+          (condition-case nil
+              (let ((query (or (read-string (format "Wikinforg (%s): " suffix))
+                               "")))
+                (condition-case nil
+                    (wikinforg nil query suffix)
+                  (quit (concat "* " query))))
+            ;;@TODO: Assumes org-capture entry type of "entry"
+            ;; should be more flexible or caller's responsibility.
+            ;; Possibly just query org-current-plist for :type
+            (quit "*")))
 
-(provide 'wikinforg)
+        (provide 'wikinforg)
 
 ;;; wikinforg.el ends here
