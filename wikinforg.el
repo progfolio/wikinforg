@@ -88,13 +88,10 @@ for now a single universal arg causes the entry to be messaged instead of insert
           ('(4) (message result))
           (_ result))
       (save-excursion
-        ;;@TODO: can we use some org-aware function
-        ;;so respect content variable is respected?
-        (insert (concat
-                 (make-string (max (1- (org-outline-level)) 0) ?*)
-                 result))))))
+        (org-paste-subtree nil result nil 'remove)))))
 
 ;;;###autoload
+;;@TODO: suffix should be optional
 (defun wikinforg-capture (suffix)
   "Wikinforg wrapper for use in capture templates.
 Call `wikinforg' command with search SUFFIX.
