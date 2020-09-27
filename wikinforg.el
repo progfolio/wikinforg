@@ -46,10 +46,6 @@
   :type 'string)
 
 ;;;; Functions
-(defun wikinforg--get (infolist prop &optional separator)
-  "Return formatted PROP string from INFOLIST."
-  (string-join (plist-get infolist prop) (or separator ", ")))
-
 (defun wikinforg--format-query (query)
   "Return formatted QUERY using `wikinforg-query-format' string."
   (format wikinforg-query-format query))
@@ -74,11 +70,10 @@ for now a single universal arg causes the entry to be messaged instead of insert
                                                (not (member el '(:wikinfo)))))
                              info))
                      (org-set-property (substring (symbol-name keyword) 1)
-                                       (wikinforg--get info keyword)))
-                   (org-set-property
-                    "URL"
-                    (format "%s?curid=%d" wikinfo-base-url
-                            (wikinfo--plist-path info :wikinfo :id)))
+                                       (format "%s" (plist-get info keyword))))
+                   (let ((id (wikinfo--plist-path info :wikinfo :id)))
+                     (org-set-property "URL" (format "%s?curid=%d" wikinfo-base-url id))
+                     (org-set-property "wikinfo-id" (format "%s" id)))
                    (when wikinforg-include-extract
                      (goto-char (point-max))
                      (insert (wikinfo--plist-path info :wikinfo :extract)))
@@ -87,13 +82,15 @@ for now a single universal arg causes the entry to be messaged instead of insert
         (pcase arg
           ('(4) (message result))
           (_ result))
-      (save-excursion
+      ;;save-excursion doesn't work here?
+      (let ((p (point)))
         (if (derived-mode-p 'org-mode)
             (org-paste-subtree nil result)
           (insert (with-temp-buffer
                     (org-mode)
                     (org-paste-subtree nil result)
-                    (buffer-string))))))))
+                    (buffer-string))))
+        (goto-char p)))))
 
 ;;;###autoload
 ;;@TODO: suffix should be optional
