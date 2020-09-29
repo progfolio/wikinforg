@@ -103,7 +103,7 @@ If the command is aborted, an empty string is returned so the capture will not e
       (let ((query (or (read-string (format "Wikinforg (%s): " suffix))
                        "")))
         (condition-case nil
-            (wikinforg nil query suffix)
+            (wikinforg nil (concat query " " suffix))
           (quit (concat "* " query))))
     ;;@TODO: Assumes org-capture entry type of "entry"
     ;; should be more flexible or caller's responsibility.
