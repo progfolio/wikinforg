@@ -1,0 +1,7 @@
+#+begin_src emacs-lisp :results silent
+(save-excursion
+  (goto-char (point-max))
+  (newline)
+  (insert (wikinforg nil nil #'car)))
+#+end_src
+
