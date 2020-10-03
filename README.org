@@ -1,2 +1,28 @@
-* Wikinforg
+#+title: Wikinforg
+* Intro
+=Wikinforg= is a front end for [[https://github.com/progfolio/wikinfo][wikinfo]] which converts Wikipedia's infoboxes into Org entries.
 
+It offers two commands:
+
+- =wikinforg= ::
+  Insert the result of a wikinfo search as an Org entry.
+- =wikinforg-capture= ::
+  Similar to above, but designed with =org-capture= in mind.
+
+* DEMO
+
+[[images/demo.gif]]
+
+* Installation
+This software is still in an experimental state.
+I make no API/behavior guarantees at this point.
+If you'd like to experiment with it, the easiest way to install is with the [[https://github.com/raxod502/straight.el/][straright package manager]]:
+
+#+begin_src emacs-lisp
+;; Required by wikinforg
+(straight-use-package
+ '(wikinfo :type git :host github :repo "progfolio/wikinfo"))
+
+(straight-use-package
+ '(wikinforg :type git :host github :repo "progfolio/wikinforg"))
+#+end_src
