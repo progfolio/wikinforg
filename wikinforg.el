@@ -28,7 +28,7 @@
 ;; TODO: finish commentary
 
 (require 'wikinfo)
-(require 'org)
+(require 'org-element)
 
 ;;; Code:
 ;;;; Customizations
@@ -61,23 +61,28 @@ for now a single universal arg causes the entry to be messaged instead of insert
   (let* ((query (string-trim
                  (wikinforg--format-query (or query (read-string "Wikinforg: ")))))
          (info (wikinfo query predicate))
-         (result (with-temp-buffer
-                   (org-insert-heading)
-                   (insert (or (wikinfo--plist-path info :wikinfo :title) query))
-                   (dolist (keyword
-                            (seq-filter
-                             (lambda (el) (and (keywordp el)
-                                               (not (member el '(:wikinfo)))))
-                             info))
-                     (org-set-property (substring (symbol-name keyword) 1)
-                                       (format "%s" (plist-get info keyword))))
-                   (let ((id (wikinfo--plist-path info :wikinfo :id)))
-                     (org-set-property "URL" (format "%s?curid=%d" wikinfo-base-url id))
-                     (org-set-property "wikinfo-id" (format "%s" id)))
-                   (when wikinforg-include-extract
-                     (goto-char (point-max))
-                     (insert (wikinfo--plist-path info :wikinfo :extract)))
-                   (buffer-string))))
+         (filtered (seq-filter (lambda (el)
+                                 (and (keywordp el) (not (member el '(:wikinfo)))))
+                               info))
+         (id (wikinfo--plist-path info :wikinfo :id))
+         (url (format "%s?curid=%d" wikinfo-base-url id))
+         (property-drawer
+          `( property-drawer nil
+             ,@(mapcar (lambda (keyword)
+                         (list 'node-property
+                               (list :key (substring (symbol-name keyword) 1)
+                                     :value (format "%s" (plist-get info keyword)))))
+                       filtered)
+             ,(list 'node-property (list :key "wikinfo-id" :value id))
+             ,(list 'node-property (list :key "URL" :value url))))
+         (paragraph `(paragraph nil ,(when wikinforg-include-extract
+                                       (wikinfo--plist-path info :wikinfo :extract))))
+         (headline `(headline
+                     ( :level 1
+                       :title ,(or (wikinfo--plist-path info :wikinfo :title) query))
+                     ,property-drawer
+                     ,paragraph))
+         (result (org-element-interpret-data `(org-data nil ,headline))))
     (if (or arg (not (called-interactively-p 'interactive)))
         (pcase arg
           ('(4) (message result))
