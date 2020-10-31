@@ -109,7 +109,7 @@ If the command is aborted, an empty string is returned so the capture will not e
                        "")))
         (condition-case nil
             (wikinforg nil (concat query " " suffix))
-          (quit (concat "* " query))))
+          ((error quit) (concat "* " query))))
     ;;@TODO: Assumes org-capture entry type of "entry"
     ;; should be more flexible or caller's responsibility.
     ;; Possibly just query org-current-plist for :type
