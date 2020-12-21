@@ -123,8 +123,7 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
 
 (declare-function org-capture-get "org-capture")
 ;;;###autoload
-;;@TODO: suffix should be optional
-(defun wikinforg-capture (suffix)
+(defun wikinforg-capture (&optional suffix)
   "Wikinforg wrapper for use in capture templates.
 Call `wikinforg' command with search SUFFIX.
 If the wikinforg call fails, the user's query is returned.
@@ -141,7 +140,7 @@ If the command is aborted, an empty string is returned so the capture will not e
         (let ((query (or (read-string (format "Wikinforg (%s): " suffix))
                          "")))
           (condition-case nil
-              (wikinforg nil (concat query " " suffix))
+              (wikinforg nil (string-trim (concat query " " suffix)))
             ((error quit) (concat prefix query))))
       (quit prefix))))
 
