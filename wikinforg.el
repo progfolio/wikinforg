@@ -6,7 +6,7 @@
 ;; URL: https://github.com/progfolio/wikinforg
 ;; Created: September 14, 2020
 ;; Keywords: org, convenience
-;; Package-Requires: ((emacs "27.1") (wikinfo "0.0.0"))
+;; Package-Requires: ((emacs "27.1") (wikinfo "0.0.0") (org "9.3"))
 ;; Version: 0.0.0
 
 ;; This file is not part of GNU Emacs.
@@ -30,6 +30,9 @@
 
 (require 'wikinfo)
 (require 'org-element)
+(require 'org)
+
+(declare-function org-toggle-checkbox "org-list")
 
 ;;; Code:
 ;;;; Customizations
@@ -45,6 +48,14 @@
 (defcustom wikinforg-query-format "%s"
   "Format string for queries."
   :type 'string)
+
+(defcustom wikinforg-data-type 'entry
+  "Type of data returned by wikinforg.
+May be lexically bound to change for a single call"
+  :type '(choice (const :tag "Regular entry" entry)
+                 (const :tag "plain list item" item)
+                 (const :tag "checklist item" checkitem)
+                 (const :tag "plain text" plain)))
 
 ;;;; Functions
 (defun wikinforg--format-query (query)
@@ -83,6 +94,19 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
                      ,property-drawer
                      ,paragraph))
          (result (org-element-interpret-data `(org-data nil ,headline))))
+    (unless (eq wikinforg-data-type 'entry)
+      (setq result (with-temp-buffer
+                     (let (org-mode-hook) (org-mode))
+                     (insert result)
+                     (if (eq wikinforg-data-type 'plain)
+                         ;; drop leading star
+                         (buffer-substring 2 (point-max))
+                       (goto-char (point-min))
+                       (call-interactively #'org-toggle-item)
+                       ;;add check box
+                       (when (eq wikinforg-data-type 'checkitem)
+                         (org-toggle-checkbox '(4)))
+                       (buffer-string)))))
     (if (or arg (not (called-interactively-p 'interactive)))
         (pcase arg
           ('(4) (message result))
@@ -106,12 +130,12 @@ Call `wikinforg' command with search SUFFIX.
 If the wikinforg call fails, the user's query is returned.
 If the command is aborted, an empty string is returned so the capture will not error."
   (require 'org-capture)
-  (let ((prefix (pcase (org-capture-get :type 'local)
+  (let ((prefix (pcase (org-capture-get :type)
                   ((or `nil `entry) "* ")
-                  (`table-line (user-error "Wikinforg does not support table-line templates"))
-                  (`plain "")
-                  (`item "- ")
-                  (`check-item "- [ ] ")
+                  ('table-line (user-error "Wikinforg does not support table-line templates"))
+                  ('plain "")
+                  ('item "- ")
+                  ('check-item "- [ ] ")
                   (`,unrecognized (user-error "Unrecognized template type %s" unrecognized)))))
     (condition-case nil
         (let ((query (or (read-string (format "Wikinforg (%s): " suffix))
@@ -121,6 +145,6 @@ If the command is aborted, an empty string is returned so the capture will not e
             ((error quit) (concat prefix query))))
       (quit prefix))))
 
-  (provide 'wikinforg)
+(provide 'wikinforg)
 
 ;;; wikinforg.el ends here
