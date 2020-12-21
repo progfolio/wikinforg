@@ -28,13 +28,15 @@
 ;; Wikinforg provides Org mode integration for wikinfo (https://github.com/progfolio/wikinfo)
 ;; See the `wikinforg` command and the `wikinforg-capture` function.
 
+;;; Code:
+;;;; Dependencies
 (require 'wikinfo)
 (require 'org-element)
 (require 'org)
 
+;;;; Declarations
 (declare-function org-toggle-checkbox "org-list")
 
-;;; Code:
 ;;;; Customizations
 (defgroup wikinforg nil
   "Org wikinfo integration"
