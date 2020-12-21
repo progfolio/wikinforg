@@ -97,6 +97,7 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
                     (buffer-string))))
         (goto-char p)))))
 
+(declare-function org-capture-get "org-capture")
 ;;;###autoload
 ;;@TODO: suffix should be optional
 (defun wikinforg-capture (suffix)
@@ -104,17 +105,22 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
 Call `wikinforg' command with search SUFFIX.
 If the wikinforg call fails, the user's query is returned.
 If the command is aborted, an empty string is returned so the capture will not error."
-  (condition-case nil
-      (let ((query (or (read-string (format "Wikinforg (%s): " suffix))
-                       "")))
-        (condition-case nil
-            (wikinforg nil (concat query " " suffix))
-          ((error quit) (concat "* " query))))
-    ;;@TODO: Assumes org-capture entry type of "entry"
-    ;; should be more flexible or caller's responsibility.
-    ;; Possibly just query org-current-plist for :type
-    (quit "*")))
+  (require 'org-capture)
+  (let ((prefix (pcase (org-capture-get :type 'local)
+                  ((or `nil `entry) "* ")
+                  (`table-line (user-error "Wikinforg does not support table-line templates"))
+                  (`plain "")
+                  (`item "- ")
+                  (`check-item "- [ ] ")
+                  (`,unrecognized (user-error "Unrecognized template type %s" unrecognized)))))
+    (condition-case nil
+        (let ((query (or (read-string (format "Wikinforg (%s): " suffix))
+                         "")))
+          (condition-case nil
+              (wikinforg nil (concat query " " suffix))
+            ((error quit) (concat prefix query))))
+      (quit prefix))))
 
-(provide 'wikinforg)
+  (provide 'wikinforg)
 
 ;;; wikinforg.el ends here
