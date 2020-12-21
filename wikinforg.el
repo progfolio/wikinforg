@@ -56,8 +56,7 @@
 (defun wikinforg (&optional arg query predicate)
   "Return Org entry from `wikinfo'.
 QUERY and PREDICATE are passed to `wikinfo'.
-Don't know what I want to do with ARG yet.
-for now a single universal arg causes the entry to be messaged instead of inserted."
+If ARG is equivalent to `\\[universal-argument]', message the entry instead of inserting."
   (interactive "P")
   (let* ((query (string-trim
                  (wikinforg--format-query (or query (read-string "Wikinforg: ")))))
