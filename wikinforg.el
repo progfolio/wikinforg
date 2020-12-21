@@ -25,7 +25,8 @@
 ;; along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; TODO: finish commentary
+;; Wikinforg provides Org mode integration for wikinfo (https://github.com/progfolio/wikinfo)
+;; See the `wikinforg` command and the `wikinforg-capture` function.
 
 (require 'wikinfo)
 (require 'org-element)
