@@ -1,6 +1,6 @@
 #+title: Wikinforg
 * Intro
-=Wikinforg= is a [[https://github.com/progfolio/wikinfo][wikinfo]] front end for converting Wikipedia's infoboxes into Org entries.
+=Wikinforg= is a [[https://github.com/progfolio/wikinfo][wikinfo]] front end for converting Wikipedia's infoboxes into Org entries and items.
 
 It offers two commands:
 
