@@ -5,7 +5,7 @@
 It offers two commands:
 
 - =wikinforg= ::
-  Insert the result of a wikinfo search as an Org entry.
+  Insert the result of a wikinfo search as an Org entry or item.
 - =wikinforg-capture= ::
   Similar to above, but designed with =org-capture= in mind.
 
