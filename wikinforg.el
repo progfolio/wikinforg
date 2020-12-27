@@ -59,6 +59,13 @@ May be lexically bound to change for a single call"
                  (const :tag "checklist item" checkitem)
                  (const :tag "plain text" plain)))
 
+(defcustom wikinforg-extract-format-function nil
+  "Function responsible for formatting/transforming the extract text.
+It must be a unary function which accepts the extract text as a string
+and returns a string.
+If nil, it is ignored."
+  :type '(or function nil))
+
 ;;;; Functions
 (defun wikinforg--format-query (query)
   "Return formatted QUERY using `wikinforg-query-format' string."
@@ -89,7 +96,9 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
              ,(list 'node-property (list :key "wikinfo-id" :value id))
              ,(list 'node-property (list :key "URL" :value url))))
          (paragraph `(paragraph nil ,(when wikinforg-include-extract
-                                       (wikinfo--plist-path info :wikinfo :extract))))
+                                       (funcall (or wikinforg-extract-format-function
+                                                  #'identity)
+                                       (wikinfo--plist-path info :wikinfo :extract)))))
          (headline `(headline
                      ( :level 1
                        :title ,(or (wikinfo--plist-path info :wikinfo :title) query))
