@@ -10,16 +10,12 @@ It offers two commands:
 - =wikinforg-capture= ::
   Similar to above, but designed with =org-capture= in mind.
 
-* DEMO
+* Demo
 
 [[images/demo.gif]]
 
 * Installation
-This software is still in an experimental state.
-I make no API/behavior guarantees at this point.
 If you'd like to experiment with it, the easiest way to install is with the [[https://github.com/raxod502/straight.el/][straright package manager]]:
-
-** Installation
 
 *** MELPA
 Try it with the [[https://github.com/raxod502/straight.el][straight package manager]]:
@@ -38,3 +34,7 @@ Require it in your init file.
 #+begin_src emacs-lisp
 (require 'wikinforg)
 #+end_src
+
+* NOTICE:
+This software is still in an experimental state.
+I make no API/behavior guarantees at this point.
