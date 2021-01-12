@@ -1,5 +1,6 @@
 #+title: Wikinforg
-* Intro
+[[https://melpa.org/#/wikinfo][file:https://melpa.org/packages/wikinfo-badge.svg]]
+
 =Wikinforg= is a [[https://github.com/progfolio/wikinfo][wikinfo]] front end for converting Wikipedia's infoboxes into Org entries and items.
 
 It offers two commands:
@@ -18,11 +19,22 @@ This software is still in an experimental state.
 I make no API/behavior guarantees at this point.
 If you'd like to experiment with it, the easiest way to install is with the [[https://github.com/raxod502/straight.el/][straright package manager]]:
 
-#+begin_src emacs-lisp
-;; Required by wikinforg
-(straight-use-package
- '(wikinfo :type git :host github :repo "progfolio/wikinfo"))
+** Installation
 
-(straight-use-package
- '(wikinforg :type git :host github :repo "progfolio/wikinforg"))
+*** MELPA
+Try it with the [[https://github.com/raxod502/straight.el][straight package manager]]:
+#+begin_src emacs-lisp
+(straight-use-package 'wikinforg)
+#+end_src
+
+or [[https://github.com/jwiegley/use-package][use-package]]:
+#+begin_src emacs-lisp
+(use-package wikinforg
+  :ensure t)
+#+end_src
+*** Manual
+Download ~wikinforg~ and make sure it is in your load-path.
+Require it in your init file.
+#+begin_src emacs-lisp
+(require 'wikinforg)
 #+end_src
