@@ -47,6 +47,15 @@
   "Whether or not to include a summary in the resultant entry's body."
   :type 'boolean)
 
+(defcustom wikinforg-thumbnail-directory nil
+  "Path to directory for storing wikinforg thumbnails."
+  :type 'string)
+
+(defcustom wikinforg-include-thumbnail nil
+  "Whether or not to include thumbnail with resultant entry.
+Thumbnails are downloaded to `wikinforg-thumbnail-directory'."
+  :type 'boolean)
+
 (defcustom wikinforg-query-format "%s"
   "Format string for queries."
   :type 'string)
@@ -95,10 +104,21 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
                        filtered)
              ,(list 'node-property (list :key "wikinfo-id" :value id))
              ,(list 'node-property (list :key "URL" :value url))))
-         (paragraph `(paragraph nil ,(when wikinforg-include-extract
-                                       (funcall (or wikinforg-extract-format-function
-                                                  #'identity)
-                                       (wikinfo--plist-path info :wikinfo :extract)))))
+         (thumbnail (when wikinforg-include-thumbnail
+                      (when-let ((url (plist-get info :thumbnail))
+                                 (dir (file-truename (or wikinforg-thumbnail-directory
+                                                         "./wikinforg/thumbnails")))
+                                 (name (concat (replace-regexp-in-string ".*/" "" url)))
+                                 (path (expand-file-name name dir)))
+                        (unless (file-exists-p dir) (make-directory dir 'parents))
+                        (with-temp-buffer (url-insert-file-contents url) (write-file path))
+                        `(link (:type "file" :path ,path :format bracket :raw-link ,path)))))
+         (paragraph `(paragraph nil
+                                ,(list "\n" thumbnail "\n\n")
+                                ,(when wikinforg-include-extract
+                                   (funcall (or wikinforg-extract-format-function
+                                                #'identity)
+                                            (wikinfo--plist-path info :wikinfo :extract)))))
          (headline `(headline
                      ( :level 1
                        :title ,(or (wikinfo--plist-path info :wikinfo :title) query))
