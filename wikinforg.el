@@ -114,7 +114,8 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
                         (with-temp-buffer (url-insert-file-contents url) (write-file path))
                         `(link (:type "file" :path ,path :format bracket :raw-link ,path)))))
          (paragraph `(paragraph nil
-                                ,(list "\n" thumbnail "\n\n")
+                                ,(when wikinforg-include-thumbnail
+                                   (list "\n" thumbnail "\n\n"))
                                 ,(when wikinforg-include-extract
                                    (funcall (or wikinforg-extract-format-function
                                                 #'identity)
