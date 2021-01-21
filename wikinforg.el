@@ -43,6 +43,13 @@
   :group 'wikinforg
   :prefix "wikinforg-")
 
+(defcustom wikinforg-wikipedia-edition-code "en"
+  "Wikipedia edition to use for queries.
+See:
+https://en.wikipedia.org/wiki/List_of_Wikipedias#Wikipedia_edition_codes
+for a complete list of codes."
+  :type 'string)
+
 (defcustom wikinforg-include-extract t
   "Whether or not to include a summary in the resultant entry's body."
   :type 'boolean)
@@ -89,6 +96,8 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
   (interactive "P")
   (let* ((query (string-trim
                  (wikinforg--format-query (or query (read-string "Wikinforg: ")))))
+         (wikinfo-base-url (format "https://%s.wikipedia.org"
+                                   wikinforg-wikipedia-edition-code))
          (info (wikinfo query predicate))
          (filtered (seq-filter (lambda (el)
                                  (and (keywordp el) (not (member el '(:wikinfo)))))
