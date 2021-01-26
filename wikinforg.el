@@ -82,6 +82,10 @@ and returns a string.
 If nil, it is ignored."
   :type '(or function nil))
 
+(defcustom wikinforg-post-insert-hook nil
+  "Hook run after an entryis inserted when `wikinforg' is called interactively."
+  :type 'hook)
+
 ;;;; Functions
 (defun wikinforg--format-query (query)
   "Return formatted QUERY using `wikinforg-query-format' string."
@@ -160,7 +164,8 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
                     (org-mode)
                     (org-paste-subtree nil result)
                     (buffer-string))))
-        (goto-char p)))))
+        (goto-char p)
+        (run-hooks 'wikinforg-post-insert-hook)))))
 
 (declare-function org-capture-get "org-capture")
 ;;;###autoload
