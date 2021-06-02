@@ -39,7 +39,7 @@
 
 ;;;; Customizations
 (defgroup wikinforg nil
-  "Org wikinfo integration"
+  "Org wikinfo integration."
   :group 'wikinforg
   :prefix "wikinforg-")
 
@@ -83,7 +83,7 @@ If nil, it is ignored."
   :type '(or function nil))
 
 (defcustom wikinforg-post-insert-hook nil
-  "Hook run after an entryis inserted when `wikinforg' is called interactively."
+  "Hook run after an entry is inserted when `wikinforg' is called interactively."
   :type 'hook)
 
 ;;;; Functions
