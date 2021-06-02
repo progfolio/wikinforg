@@ -187,8 +187,7 @@ If the command is aborted, an empty string is returned so the capture will not e
                          "")))
           (condition-case nil
               (wikinforg nil (string-trim (concat query " " suffix)))
-            ((error quit) (concat prefix query))))
-      (quit prefix))))
+            ((error quit) (concat prefix query)))))))
 
 (provide 'wikinforg)
 
