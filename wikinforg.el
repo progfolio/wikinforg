@@ -167,6 +167,11 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
         (goto-char p)
         (run-hooks 'wikinforg-post-insert-hook)))))
 
+(defun wikinforg-capture-run-hook ()
+  "Run `wikinforg-post-insert-hook' in context of capture buffer."
+  (run-hooks 'wikinforg-post-insert-hook)
+  (remove-hook 'org-capture-mode-hook #'wikinforg-capture-run-hook))
+
 (declare-function org-capture-get "org-capture")
 ;;;###autoload
 (defun wikinforg-capture (&optional suffix)
@@ -175,6 +180,7 @@ Call `wikinforg' command with search SUFFIX.
 If the wikinforg call fails, the user's query is returned.
 If the command is aborted, an empty string is returned so the capture will not error."
   (require 'org-capture)
+  (add-hook 'org-capture-mode-hook #'wikinforg-capture-run-hook)
   (let ((prefix (pcase (org-capture-get :type)
                   ((or `nil `entry) "* ")
                   ('table-line (user-error "Wikinforg does not support table-line templates"))
