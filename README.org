@@ -34,7 +34,3 @@ Require it in your init file.
 #+begin_src emacs-lisp
 (require 'wikinforg)
 #+end_src
-
-* NOTICE:
-This software is still in an experimental state.
-I make no API/behavior guarantees at this point.
