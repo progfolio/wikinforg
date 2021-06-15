@@ -101,7 +101,7 @@ If nil, it is ignored."
 
 (defun wikinforg--display (title entry)
   "Display a wikinforg buffer for TITLE with ENTRY."
-  (with-current-buffer (get-buffer-create (format "* Wikinforg: %S*" title))
+  (with-current-buffer (get-buffer-create (format "*%S wikinforg*" title))
     (read-only-mode -1)
     (erase-buffer)
     (insert entry)
