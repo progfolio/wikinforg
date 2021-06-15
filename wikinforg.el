@@ -91,12 +91,30 @@ If nil, it is ignored."
   "Return formatted QUERY using `wikinforg-query-format' string."
   (format wikinforg-query-format query))
 
+(defvar wikinforg-mode-map (make-sparse-keymap) "Keymap for wikinforg mode.")
+(define-key wikinforg-mode-map (kbd "q") 'bury-buffer)
+
+(define-derived-mode wikinforg-mode org-mode "wikinforg"
+  "Major mode for viewing wikinforg entries.
+\\{wikinforg-mode-map}"
+  (read-only-mode 1))
+
+(defun wikinforg--display (title entry)
+  "Display a wikinforg buffer for TITLE with ENTRY."
+  (with-current-buffer (get-buffer-create (format "* Wikinforg: %S*" title))
+    (read-only-mode -1)
+    (erase-buffer)
+    (insert entry)
+    (run-hooks 'wikinforg-post-insert-hook)
+    (wikinforg-mode)
+    (switch-to-buffer (current-buffer))))
+
 ;;;; Commands
 ;;;###autoload
 (defun wikinforg (&optional arg query predicate)
   "Return Org entry from `wikinfo'.
 QUERY and PREDICATE are passed to `wikinfo'.
-If ARG is equivalent to `\\[universal-argument]', message the entry instead of inserting."
+If ARG is equivalent to `\\[universal-argument]', display the entry in a buffer."
   (interactive "P")
   (let* ((query (string-trim
                  (wikinforg--format-query (or query (read-string "Wikinforg: ")))))
@@ -108,6 +126,7 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
                                info))
          (id (wikinfo--plist-path info :wikinfo :id))
          (url (format "%s?curid=%d" wikinfo-base-url id))
+         (title (or (wikinfo--plist-path info :wikinfo :title) query))
          (property-drawer
           `( property-drawer nil
              ,@(mapcar (lambda (keyword)
@@ -133,11 +152,7 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
                                    (funcall (or wikinforg-extract-format-function
                                                 #'identity)
                                             (wikinfo--plist-path info :wikinfo :extract)))))
-         (headline `(headline
-                     ( :level 1
-                       :title ,(or (wikinfo--plist-path info :wikinfo :title) query))
-                     ,property-drawer
-                     ,paragraph))
+         (headline `(headline ( :level 1 :title ,title) ,property-drawer ,paragraph))
          (result (org-element-interpret-data `(org-data nil ,headline))))
     (unless (eq wikinforg-data-type 'entry)
       (setq result (with-temp-buffer
@@ -154,7 +169,7 @@ If ARG is equivalent to `\\[universal-argument]', message the entry instead of i
                        (buffer-string)))))
     (if (or arg (not (called-interactively-p 'interactive)))
         (pcase arg
-          ('(4) (message result))
+          ('(4) (wikinforg--display title result))
           (_ result))
       ;;save-excursion doesn't work here?
       (let ((p (point)))
