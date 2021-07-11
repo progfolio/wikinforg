@@ -138,8 +138,12 @@ If ARG is equivalent to `\\[universal-argument]', display the entry in a buffer.
              ,(list 'node-property (list :key "URL" :value url))))
          (thumbnail (when wikinforg-include-thumbnail
                       (when-let ((url (plist-get info :thumbnail))
-                                 (dir (file-truename (or wikinforg-thumbnail-directory
-                                                         "./wikinforg/thumbnails")))
+                                 (dir (file-truename
+                                       (if (equal arg '(4))
+                                           (let ((d (expand-file-name "wikinforg/" (temporary-file-directory))))
+                                             (unless (file-exists-p d) (make-directory d 'parents))
+                                             d)
+                                         (or wikinforg-thumbnail-directory "./wikinforg/thumbnails"))))
                                  (name (concat (replace-regexp-in-string ".*/" "" url)))
                                  (path (expand-file-name name dir)))
                         (unless (file-exists-p dir) (make-directory dir 'parents))
