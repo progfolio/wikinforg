@@ -107,7 +107,7 @@ If nil, it is ignored."
     (insert entry)
     (run-hooks 'wikinforg-post-insert-hook)
     (wikinforg-mode)
-    (switch-to-buffer (current-buffer))))
+    (display-buffer (current-buffer))))
 
 ;;;; Commands
 ;;;###autoload
