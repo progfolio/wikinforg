@@ -92,7 +92,7 @@ If nil, it is ignored."
   (format wikinforg-query-format query))
 
 (defvar wikinforg-mode-map (make-sparse-keymap) "Keymap for wikinforg mode.")
-(define-key wikinforg-mode-map (kbd "q") 'bury-buffer)
+(define-key wikinforg-mode-map (kbd "q") 'quit-window)
 
 (define-derived-mode wikinforg-mode org-mode "wikinforg"
   "Major mode for viewing wikinforg entries.
@@ -107,7 +107,7 @@ If nil, it is ignored."
     (insert entry)
     (run-hooks 'wikinforg-post-insert-hook)
     (wikinforg-mode)
-    (switch-to-buffer (current-buffer))))
+    (pop-to-buffer (current-buffer))))
 
 ;;;; Commands
 ;;;###autoload
