@@ -92,7 +92,7 @@ If nil, it is ignored."
   (format wikinforg-query-format query))
 
 (defvar wikinforg-mode-map (make-sparse-keymap) "Keymap for wikinforg mode.")
-(define-key wikinforg-mode-map (kbd "q") 'bury-buffer)
+(define-key wikinforg-mode-map (kbd "q") 'quit-window)
 
 (define-derived-mode wikinforg-mode org-mode "wikinforg"
   "Major mode for viewing wikinforg entries.
@@ -107,7 +107,7 @@ If nil, it is ignored."
     (insert entry)
     (run-hooks 'wikinforg-post-insert-hook)
     (wikinforg-mode)
-    (display-buffer (current-buffer))))
+    (pop-to-buffer (current-buffer))))
 
 ;;;; Commands
 ;;;###autoload
@@ -197,7 +197,7 @@ If ARG is equivalent to `\\[universal-argument]', display the entry in a buffer.
   "Wikinforg wrapper for use in capture templates.
 Call `wikinforg' command with search SUFFIX.
 If the wikinforg call fails, the user's query is returned.
-If the command is aborted, an empty string is returned so the capture will not error."
+If the command is aborted, return an empty string to prevent capture error."
   (require 'org-capture)
   (add-hook 'org-capture-mode-hook #'wikinforg-capture-run-hook)
   (let ((prefix (pcase (org-capture-get :type)
