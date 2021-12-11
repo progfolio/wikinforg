@@ -107,7 +107,12 @@ If nil, it is ignored."
     (insert entry)
     (run-hooks 'wikinforg-post-insert-hook)
     (wikinforg-mode)
-    (pop-to-buffer (current-buffer))))
+    ;; display the wikinforg buffer according to user's preferences
+	;; (pops up a new window by default)
+    (let ((window (display-buffer (current-buffer))))
+	  ;; select the window (and it's frame if a separate frame is used)
+	  (when (window-live-p window)
+		(select-window window)))))
 
 ;;;; Commands
 ;;;###autoload
