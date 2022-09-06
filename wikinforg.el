@@ -7,7 +7,7 @@
 ;; Created: September 14, 2020
 ;; Keywords: org, convenience
 ;; Package-Requires: ((emacs "27.1") (wikinfo "0.0.0") (org "9.3"))
-;; Version: 0.0.0
+;; Version: 0.1.0
 
 ;; This file is not part of GNU Emacs.
 
@@ -33,6 +33,7 @@
 (require 'wikinfo)
 (require 'org-element)
 (require 'org)
+(require 'cl-lib)
 
 ;;;; Declarations
 (declare-function org-toggle-checkbox "org-list")
@@ -73,7 +74,8 @@ May be lexically bound to change for a single call"
   :type '(choice (const :tag "Regular entry" entry)
                  (const :tag "plain list item" item)
                  (const :tag "checklist item" checkitem)
-                 (const :tag "plain text" plain)))
+                 (const :tag "plain text (excluding properties)" plain)
+                 (const :tag "top-level #+title, properties" buffer)))
 
 (defcustom wikinforg-extract-format-function nil
   "Function responsible for formatting/transforming the extract text.
@@ -109,82 +111,82 @@ If nil, it is ignored."
     (wikinforg-mode)
     (pop-to-buffer (current-buffer))))
 
+(defun wikinforg--property-drawer (info)
+  "Return Org property list data from `wikinfo' query INFO."
+  (let* ((id (wikinfo--plist-path info :wikinfo :id))
+         (url (format "%s?curid=%d" wikinfo-base-url id)))
+    `( property-drawer nil
+       ,@(cl-loop for el in info
+                  when (and (keywordp el) (not (eq el :wikinfo)))
+                  collect `(node-property
+                            ( :key ,(substring (symbol-name el) 1)
+                              :value ,(format "%s" (plist-get info el)))))
+
+       (node-property (:key "wikinfo-id" :value ,id))
+       (node-property (:key "URL" :value ,url)))))
+
+(defun wikinforg--thumbnail (info &optional temp)
+  "Save local thumbnail. Return thumbnail Org data from `wikinfo' INFO.
+If TEMP is non-nil the thumbnail is saved to a temporary directory.
+Otherwse `wikinforg-thumbnail-directory' is used."
+  (when-let ((wikinforg-include-thumbnail)
+             (url (plist-get info :thumbnail))
+             (dir (file-truename
+                   (if temp
+                       (let ((d (expand-file-name "wikinforg/" (temporary-file-directory))))
+                         (unless (file-exists-p d) (make-directory d 'parents))
+                         d)
+                     (or wikinforg-thumbnail-directory "./wikinforg/thumbnails"))))
+             (name (concat (replace-regexp-in-string ".*/" "" url)))
+             (path (expand-file-name name dir)))
+    (unless (file-exists-p dir) (make-directory dir 'parents))
+    (with-temp-buffer (url-insert-file-contents url) (write-file path))
+    `(link (:type "file" :path ,path :format bracket :raw-link ,path))))
+
+(defun wikinforg--body (&optional thumbnail extract)
+  "Return Org data for paragraph including THUMBNAIL and EXTRACT."
+  `(paragraph nil ,(when thumbnail (list "\n" thumbnail "\n\n")) ,extract))
+
 ;;;; Commands
 ;;;###autoload
-(defun wikinforg (&optional arg query predicate)
-  "Return Org entry from `wikinfo'.
-QUERY and PREDICATE are passed to `wikinfo'.
-If ARG is equivalent to `\\[universal-argument]', display the entry in a buffer."
-  (interactive "P")
-  (let* ((query (string-trim
-                 (wikinforg--format-query (or query (read-string "Wikinforg: ")))))
-         (wikinfo-base-url (format "https://%s.wikipedia.org"
-                                   wikinforg-wikipedia-edition-code))
+(defun wikinforg (query &optional predicate temp)
+  "Insert formatted `wikinfo' QUERY at point.
+PREDICATE is passed to `wikinfo'.
+When TEMP is non-nil, or called interactively with a prefix arg,
+show the result in a buffer instead of inserting."
+  (interactive (list (read-string "Wikinforg: ") current-prefix-arg nil))
+  (let* ((query (string-trim (wikinforg--format-query query)))
+         (wikinfo-base-url (format "https://%s.wikipedia.org" wikinforg-wikipedia-edition-code))
          (info (wikinfo query predicate))
-         (filtered (seq-filter (lambda (el)
-                                 (and (keywordp el) (not (member el '(:wikinfo)))))
-                               info))
-         (id (wikinfo--plist-path info :wikinfo :id))
-         (url (format "%s?curid=%d" wikinfo-base-url id))
          (title (or (wikinfo--plist-path info :wikinfo :title) query))
-         (property-drawer
-          `( property-drawer nil
-             ,@(mapcar (lambda (keyword)
-                         (list 'node-property
-                               (list :key (substring (symbol-name keyword) 1)
-                                     :value (format "%s" (plist-get info keyword)))))
-                       filtered)
-             ,(list 'node-property (list :key "wikinfo-id" :value id))
-             ,(list 'node-property (list :key "URL" :value url))))
-         (thumbnail (when wikinforg-include-thumbnail
-                      (when-let ((url (plist-get info :thumbnail))
-                                 (dir (file-truename
-                                       (if (equal arg '(4))
-                                           (let ((d (expand-file-name "wikinforg/" (temporary-file-directory))))
-                                             (unless (file-exists-p d) (make-directory d 'parents))
-                                             d)
-                                         (or wikinforg-thumbnail-directory "./wikinforg/thumbnails"))))
-                                 (name (concat (replace-regexp-in-string ".*/" "" url)))
-                                 (path (expand-file-name name dir)))
-                        (unless (file-exists-p dir) (make-directory dir 'parents))
-                        (with-temp-buffer (url-insert-file-contents url) (write-file path))
-                        `(link (:type "file" :path ,path :format bracket :raw-link ,path)))))
-         (paragraph `(paragraph nil
-                                ,(when wikinforg-include-thumbnail
-                                   (list "\n" thumbnail "\n\n"))
-                                ,(when wikinforg-include-extract
-                                   (funcall (or wikinforg-extract-format-function
-                                                #'identity)
-                                            (wikinfo--plist-path info :wikinfo :extract)))))
-         (headline `(headline ( :level 1 :title ,title) ,property-drawer ,paragraph))
-         (result (org-element-interpret-data `(org-data nil ,headline))))
-    (unless (eq wikinforg-data-type 'entry)
-      (setq result (with-temp-buffer
-                     (let (org-mode-hook) (org-mode))
-                     (insert result)
-                     (if (eq wikinforg-data-type 'plain)
-                         ;; drop leading star
-                         (buffer-substring 2 (point-max))
-                       (goto-char (point-min))
-                       (call-interactively #'org-toggle-item)
-                       ;;add check box
-                       (when (eq wikinforg-data-type 'checkitem)
-                         (org-toggle-checkbox '(4)))
-                       (buffer-string)))))
-    (if (or arg (not (called-interactively-p 'interactive)))
-        (pcase arg
-          ('(4) (wikinforg--display title result))
-          (_ result))
-      ;;save-excursion doesn't work here?
-      (let ((p (point)))
+         (property-drawer (wikinforg--property-drawer info))
+         (body (wikinforg--body (wikinforg--thumbnail info temp)
+                                (and wikinforg-include-extract
+                                     (funcall (or wikinforg-extract-format-function #'identity)
+                                              (wikinfo--plist-path info :wikinfo :extract)))))
+         (data (pcase wikinforg-data-type
+                 ('entry `(headline (:level 1 :title ,title) ,property-drawer ,body))
+                 ((or 'item 'checkitem)
+                  `(item ( :bullet "- " :pre-blank 0
+                           ,@(when (eq wikinforg-data-type 'checkitem)
+                               (list :checkbox 'off)))
+                         (paragraph nil ,title)
+                         (paragraph nil ,body)))
+                 ('plain `((paragraph nil ,title) (paragraph nil ,body)))
+                 ('buffer `(,property-drawer
+                            (keyword (:key "TITLE" :value ,title))
+                            ,body))
+                 (_ (signal 'wrong-type-argument
+                            (list '(entry item checkitem plain buffer)
+                                  wikinforg-data-type)))))
+         (result (org-element-interpret-data `(org-data nil ,data))))
+    (if temp
+        (wikinforg--display title result)
+      (save-excursion
         (if (derived-mode-p 'org-mode)
             (org-paste-subtree nil result)
-          (insert (with-temp-buffer
-                    (org-mode)
-                    (org-paste-subtree nil result)
-                    (buffer-string))))
-        (goto-char p)
-        (run-hooks 'wikinforg-post-insert-hook)))))
+          (insert result)))
+      (run-hooks 'wikinforg-post-insert-hook))))
 
 (defun wikinforg-capture-run-hook ()
   "Run `wikinforg-post-insert-hook' in context of capture buffer."
@@ -211,7 +213,7 @@ If the command is aborted, return an empty string to prevent capture error."
         (let ((query (or (read-string (format "Wikinforg (%s): " suffix))
                          "")))
           (condition-case nil
-              (wikinforg nil (string-trim (concat query " " suffix)))
+              (wikinforg (string-trim (concat query " " suffix)))
             ((error quit) (concat prefix query)))))))
 
 (provide 'wikinforg)
