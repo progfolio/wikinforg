@@ -93,8 +93,10 @@ If nil, it is ignored."
   "Return formatted QUERY using `wikinforg-query-format' string."
   (format wikinforg-query-format query))
 
-(defvar wikinforg-mode-map (make-sparse-keymap) "Keymap for wikinforg mode.")
-(define-key wikinforg-mode-map (kbd "q") 'quit-window)
+(defvar wikinforg-mode-map (let ((map (make-sparse-keymap)))
+                             (define-key map (kbd "q") 'quit-window)
+                             map)
+  "Keymap for wikinforg mode.")
 
 (define-derived-mode wikinforg-mode org-mode "wikinforg"
   "Major mode for viewing wikinforg entries.
