@@ -156,7 +156,7 @@ Otherwse `wikinforg-thumbnail-directory' is used."
 PREDICATE is passed to `wikinfo'.
 When TEMP is non-nil, or called interactively with a prefix arg,
 show the result in a buffer instead of inserting."
-  (interactive (list (read-string "Wikinforg: ") current-prefix-arg nil))
+  (interactive (list (read-string "Wikinforg: ") nil current-prefix-arg))
   (let* ((query (string-trim (wikinforg--format-query query)))
          (wikinfo-base-url (format "https://%s.wikipedia.org" wikinforg-wikipedia-edition-code))
          (info (wikinfo query predicate))
