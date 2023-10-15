@@ -109,6 +109,7 @@ If nil, it is ignored."
     (read-only-mode -1)
     (erase-buffer)
     (insert entry)
+    (org-mode)
     (run-hooks 'wikinforg-post-insert-hook)
     (wikinforg-mode)
     (pop-to-buffer (current-buffer))))
