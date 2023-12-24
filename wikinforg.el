@@ -82,7 +82,7 @@ May be lexically bound to change for a single call"
 It must be a unary function which accepts the extract text as a string
 and returns a string.
 If nil, it is ignored."
-  :type '(or function nil))
+  :type 'function)
 
 (defcustom wikinforg-post-insert-hook nil
   "Hook run after an entry is inserted when `wikinforg' is called interactively."
