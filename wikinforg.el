@@ -212,9 +212,7 @@ If the command is aborted, return an empty string to prevent capture error."
                   ('item "- ")
                   ('check-item "- [ ] ")
                   (`,unrecognized (user-error "Unrecognized template type %s" unrecognized)))))
-      (when-let ((query (or (read-string (concat "Wikinforg "
-                                                 (when suffix (format "(%s)" suffix)))
-                                         ":"))))
+      (when-let ((query (read-string (concat "Wikinforg " (when suffix (format "(%s)" suffix)) ":"))))
         (condition-case nil
             (wikinforg (string-trim (concat query " " suffix)))
           ((error quit) (concat prefix query))))))
