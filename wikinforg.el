@@ -1,4 +1,4 @@
-;;; wikinforg.el --- Org-mode wikinfo integration  -*- lexical-binding: t; -*-
+;;; wikinforg.el --- Org-mode wikinfo integration  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2024 Nicholas Vollmer
 
@@ -7,6 +7,8 @@
 ;; Created: September 14, 2020
 ;; Keywords: org, convenience
 ;; Package-Requires: ((emacs "27.1") (wikinfo "0.0.0") (org "9.3"))
+;; Package-Version: 20240104.603
+;; Package-Revision: 6c06f297a45c
 
 ;; This file is not part of GNU Emacs.
 
@@ -147,7 +149,7 @@ Otherwse `wikinforg-thumbnail-directory' is used."
   "Return Org data for paragraph including THUMBNAIL, EXTRACT, and URL."
   `(paragraph nil
      ,@(when thumbnail (list "\n" thumbnail "\n\n"))
-     ,@(when url (list (format "From [[%s][Wikipedia]]:\n\n" url)))
+     ,@(when url (list (format "From [[%s][Wikipedia]]:\n" url)))
      ,@(when extract (list "#+begin_quote\n" extract "\n#+end_quote"))))
 
 ;;;; Commands
