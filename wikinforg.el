@@ -7,7 +7,6 @@
 ;; Created: September 14, 2020
 ;; Keywords: org, convenience
 ;; Package-Requires: ((emacs "27.1") (wikinfo "0.0.0") (org "9.3"))
-;; Version: 0.1.0
 
 ;; This file is not part of GNU Emacs.
 
@@ -94,8 +93,8 @@ If nil, it is ignored."
   (format wikinforg-query-format query))
 
 (defvar wikinforg-mode-map (let ((map (make-sparse-keymap)))
-                             (define-key map (kbd "q") 'quit-window)
-                             map)
+                            (define-key map (kbd "q") 'quit-window)
+                            map)
   "Keymap for wikinforg mode.")
 
 (define-derived-mode wikinforg-mode org-mode "wikinforg"
@@ -114,17 +113,15 @@ If nil, it is ignored."
     (wikinforg-mode)
     (pop-to-buffer (current-buffer))))
 
-(defun wikinforg--property-drawer (info)
-  "Return Org property list data from `wikinfo' query INFO."
-  (let* ((id (wikinfo--plist-path info :wikinfo :id))
-         (url (format "%s?curid=%d" wikinfo-base-url id)))
-    `( property-drawer nil
+(defun wikinforg--property-drawer (info url)
+  "Return Org property list data from `wikinfo' query INFO and the page URL."
+  (let ((id (wikinfo--plist-path info :wikinfo :id)))
+    `(property-drawer nil
        ,@(cl-loop for el in info
                   when (and (keywordp el) (not (eq el :wikinfo)))
                   collect `(node-property
-                            ( :key ,(substring (symbol-name el) 1)
-                              :value ,(format "%s" (plist-get info el)))))
-
+                            (:key ,(substring (symbol-name el) 1)
+                             :value ,(format "%s" (plist-get info el)))))
        (node-property (:key "wikinfo-id" :value ,id))
        (node-property (:key "URL" :value ,url)))))
 
@@ -146,9 +143,12 @@ Otherwse `wikinforg-thumbnail-directory' is used."
     (with-temp-buffer (url-insert-file-contents url) (write-file path))
     `(link (:type "file" :path ,path :format bracket :raw-link ,path))))
 
-(defun wikinforg--body (&optional thumbnail extract)
-  "Return Org data for paragraph including THUMBNAIL and EXTRACT."
-  `(paragraph nil ,(when thumbnail (list "\n" thumbnail "\n\n")) ,extract))
+(defun wikinforg--body (&optional thumbnail extract url)
+  "Return Org data for paragraph including THUMBNAIL, EXTRACT, and URL."
+  `(paragraph nil
+     ,@(when thumbnail (list "\n" thumbnail "\n\n"))
+     ,@(when url (list (format "From [[%s][Wikipedia]]:\n\n" url)))
+     ,@(when extract (list "#+begin_quote\n" extract "\n#+end_quote"))))
 
 ;;;; Commands
 ;;;###autoload
@@ -161,12 +161,15 @@ show the result in a buffer instead of inserting."
   (let* ((query (string-trim (wikinforg--format-query query)))
          (wikinfo-base-url (format "https://%s.wikipedia.org" wikinforg-wikipedia-edition-code))
          (info (wikinfo query predicate))
+         (id (wikinfo--plist-path info :wikinfo :id))
+         (url (and id (format "%s?curid=%d" wikinfo-base-url id)))
          (title (or (wikinfo--plist-path info :wikinfo :title) query))
-         (property-drawer (wikinforg--property-drawer info))
+         (property-drawer (wikinforg--property-drawer info url))
          (body (wikinforg--body (wikinforg--thumbnail info temp)
                                 (and wikinforg-include-extract
                                      (funcall (or wikinforg-extract-format-function #'identity)
-                                              (wikinfo--plist-path info :wikinfo :extract)))))
+                                              (wikinfo--plist-path info :wikinfo :extract)))
+                                url))
          (data (pcase wikinforg-data-type
                  ('entry `(headline (:level 1 :title ,title) ,property-drawer ,body))
                  ((or 'item 'checkitem)
@@ -212,10 +215,10 @@ If the command is aborted, return an empty string to prevent capture error."
                   ('item "- ")
                   ('check-item "- [ ] ")
                   (`,unrecognized (user-error "Unrecognized template type %s" unrecognized)))))
-      (when-let ((query (read-string (concat "Wikinforg " (when suffix (format "(%s)" suffix)) ":"))))
-        (condition-case nil
-            (wikinforg (string-trim (concat query " " suffix)))
-          ((error quit) (concat prefix query))))))
+    (when-let ((query (read-string (concat "Wikinforg " (when suffix (format "(%s)" suffix)) ":"))))
+      (condition-case nil
+          (wikinforg (string-trim (concat query " " suffix)))
+        ((error quit) (concat prefix query))))))
 
 (provide 'wikinforg)
 
